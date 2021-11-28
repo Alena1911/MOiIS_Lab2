@@ -13,7 +13,7 @@ data_set = pd.read_csv('Davis.csv')
 data_set.drop('Unnamed: 0', axis=1, inplace=True)
 
 # 1. Удаление некорректных данных
-data_set.dropna(inplace=True)
+data_set = data_set[np.logical_and(data_set['height'] > 100, data_set['weight'] < 150)]
 
 # 2. Выделение тестовой выборки из 50 экземпляров
 train_dt, test_dt = train_test_split(data_set, test_size=50)
@@ -34,8 +34,8 @@ ax_1.legend()
 
 ax_2.hist(train_dt[train_dt['sex'] == 'M']['height'], color='blue', label='Male Height')
 ax_2.hist(train_dt[train_dt['sex'] == 'M']['weight'], color='brown', label='Male Weight')
-ax_2.hist(train_dt[train_dt['sex'] == 'F']['height'], color='red', label='Female Height')
-ax_2.hist(train_dt[train_dt['sex'] == 'F']['weight'], color='pink', label='Female Weight')
+ax_2.hist(train_dt[train_dt['sex'] == 'F']['height'], color='brown', label='Female Height', alpha=0.7)
+ax_2.hist(train_dt[train_dt['sex'] == 'F']['weight'], color='red', label='Female Weight', alpha=0.7)
 ax_2.set_title('Weight and height for sex')
 ax_2.legend()
 
@@ -45,15 +45,15 @@ test_dt.replace({'M': 0, 'F': 1}, inplace=True)
 
 trainX = train_dt.loc[:, 'weight':'height'].to_numpy()
 trainY = train_dt['sex'].to_numpy()
-clf = LogisticRegression().fit(trainX, trainY)
-print(f'Производительность тренировочной: {clf.score(trainX, trainY)}')
+clf_train = LogisticRegression().fit(trainX, trainY)
+print(f'Производительность тренировочной: {clf_train.score(trainX, trainY)}')
 
 testX = test_dt.loc[:, 'weight':'height'].to_numpy()
 testY = test_dt['sex'].to_numpy()
-predicts = clf.predict(testX)
-print(f'Производительность тестовой: {accuracy_score(predicts, testY)}')
+clf_test = LogisticRegression().fit(testX, testY)
+print(f'Производительность тестовой: {clf_test.score(testX, testY)}')
 
-predicts = clf.predict(trainX)
+predicts = clf_train.predict(trainX)
 
 ax_3.scatter(trainX[predicts == 0][:, 1], trainX[predicts == 0][:, 0], color='blue', label='M')
 ax_3.scatter(trainX[predicts == 1][:, 1], trainX[predicts == 1][:, 0], color='red', label='F')
@@ -63,7 +63,7 @@ ax_3.set_title('Тренировочная выборка')
 ax_3.legend()
 
 
-predicts = clf.predict(testX)
+predicts = clf_test.predict(testX)
 ax_4.scatter(testX[predicts == 0][:, 1], testX[predicts == 0][:, 0], color='blue', label='M')
 ax_4.scatter(testX[predicts == 1][:, 1], testX[predicts == 1][:, 0], color='red', label='F')
 ax_4.set_ylabel('weight')
