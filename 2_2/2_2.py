@@ -1,6 +1,8 @@
+import math
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, accuracy_score
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -22,7 +24,8 @@ linear = LinearRegression().fit(trainX, trainY)
 print(f'Коэффициент: {linear.score(trainX, trainY)}')
 
 prd = linear.predict(validateX)
-print(f'Среднюю ошибку предсказания: {mean_squared_error(prd, validateY)}')
+print(f'Средняя ошибка предсказания np.mean: {np.mean(np.abs(prd - validateY))}')
+print(f'Средняя ошибка предсказания sqrt(mean_squared_error): {math.sqrt(mean_squared_error(prd, validateY))}')
 
 plt.scatter(validateY, prd)
 plt.plot(validateY, validateY, color='black')

@@ -51,7 +51,7 @@ print('Добавлен Profit:')
 print(data_set, '\r\n')
 
 data_set['OrderDate'] = pd.to_datetime(data_set['OrderDate'])
-Condition = np.logical_or(data_set['OrderDate'].dt.year == 2005, data_set['OrderDate'].dt.year == 2006)
+Condition = data_set['OrderDate'].dt.year.isin([2005, 2006])
 filtered_table = data_set[Condition]
 profit_mean = filtered_table.groupby(by='CategoryName')['Profit'].sum() / filtered_table['Profit'].sum()
 profit_mean.sort_values(ascending=False, inplace=True)
