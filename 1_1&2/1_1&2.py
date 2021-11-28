@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -29,29 +30,30 @@ print('Добавлен OrderSum:')
 print(ds_orders, '\r\n')
 
 # 4.2. Определение самых дорогих заказов
-ds_orders.groupby(by='OrderID')
-ds_orders.sort_values(by='OrderSum', ascending=False, inplace=True)
 print('Самые дорогие заказы:')
-print(ds_orders.head(), '\r\n')
+print(ds_orders.groupby(by='OrderID')['OrderSum'].sum().sort_values(ascending=False), '\r\n')
 
 # 5. Определение продуктов с максимальной стоимость за шт.
-ds_products.groupby(by='ProductName')
-ds_products.sort_values(by='UnitCost', ascending=False, inplace=True)
+
+ds_products['CostByUnitInUnit'] = ds_products['UnitCost'] / ds_products['QuantityPerUnit']
+ds_products.sort_values(by='CostByUnitInUnit', ascending=False, inplace=True)
 print('Самые дорогие продукты:')
-print(ds_products.head(), '\r\n')
+print(ds_products[['ProductName', 'CostByUnitInUnit']].head(), '\r\n')
 
 ################ 2-ая задача #######################
 # 1. Средний доход от продаж для категорий продуктов
 data_set = pd.merge(ds_orders, ds_products, how='inner', on='ProductID')
-data_set['OrderSum'] = data_set['UnitPrice_x'] * data_set['Quantity'] * (1 - data_set['Discount'])
 print('Средний доход от продаж для категорий продуктов:')
 print(data_set.groupby(by='CategoryName')['OrderSum'].mean().sort_values(ascending=False), '\r\n')
 # 2. Добавление столбца Profit
-data_set['Profit'] = data_set['OrderSum'] - data_set['Quantity'] * data_set['QuantityPerUnit'] * data_set['UnitCost']
+data_set['Profit'] = data_set['OrderSum'] - data_set['Quantity'] * data_set['UnitCost']
 print('Добавлен Profit:')
 print(data_set, '\r\n')
 
-profit_mean = data_set.groupby(by='CategoryName')['Profit'].sum() / data_set['Profit'].sum()
+data_set['OrderDate'] = pd.to_datetime(data_set['OrderDate'])
+Condition = np.logical_or(data_set['OrderDate'].dt.year == 2005, data_set['OrderDate'].dt.year == 2006)
+filtered_table = data_set[Condition]
+profit_mean = filtered_table.groupby(by='CategoryName')['Profit'].sum() / filtered_table['Profit'].sum()
 profit_mean.sort_values(ascending=False, inplace=True)
 
 # Нахождение категорий товаров, обеспечивающих 80% прибыли
