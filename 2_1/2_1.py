@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
@@ -45,36 +46,45 @@ test_dt.replace({'M': 0, 'F': 1}, inplace=True)
 
 trainX = train_dt.loc[:, 'weight':'height'].to_numpy()
 trainY = train_dt['sex'].to_numpy()
-clf_train = LogisticRegression().fit(trainX, trainY)
-print(f'Производительность тренировочной: {clf_train.score(trainX, trainY)}')
+clf = LogisticRegression().fit(trainX, trainY)
+print(f'Производительность тренировочной: {clf.score(trainX, trainY)}')
 
 testX = test_dt.loc[:, 'weight':'height'].to_numpy()
 testY = test_dt['sex'].to_numpy()
-clf_test = LogisticRegression().fit(testX, testY)
-print(f'Производительность тестовой: {clf_test.score(testX, testY)}')
+print(f'Производительность тестовой: {clf.score(testX, testY)}')
 
-predicts = clf_train.predict(trainX)
+predicts = clf.predict(trainX)
 
-ax_3.scatter(trainX[predicts == 0][:, 1], trainX[predicts == 0][:, 0], color='blue', label='M')
-ax_3.scatter(trainX[predicts == 1][:, 1], trainX[predicts == 1][:, 0], color='red', label='F')
+x1_min, x1_max = trainX[:, 0].min() - 0.5, trainX[:, 1].max()+0.5
+x2_min, x2_max = trainX[:, 0].min() - 0.5, trainX[:, 1].max()+0.5
+
+xx1, xx2 = np.mgrid[x1_min:x1_max:50j, x2_min:x2_max:50j]
+X_pred = np.column_stack([xx1.reshape(-1), xx2.reshape(-1)])
+y_pred = clf.predict(X_pred)
+
+ax_3.scatter(trainX[predicts == 0][:, 0], trainX[predicts == 0][:, 1], color='blue', label='M')
+ax_3.scatter(trainX[predicts == 1][:, 0], trainX[predicts == 1][:, 1], color='red', label='F')
 ax_3.set_ylabel('weight')
 ax_3.set_xlabel('height')
 ax_3.set_title('Тренировочная выборка')
+ax_3.pcolormesh(xx1, xx2, y_pred.reshape(xx1.shape), cmap=ListedColormap(['blue', 'red']), alpha=0.3, shading='auto')
 ax_3.legend()
 
 
-predicts = clf_test.predict(testX)
-ax_4.scatter(testX[predicts == 0][:, 1], testX[predicts == 0][:, 0], color='blue', label='M')
-ax_4.scatter(testX[predicts == 1][:, 1], testX[predicts == 1][:, 0], color='red', label='F')
+x1_min, x1_max = testX[:, 0].min() - 0.5, testX[:, 1].max()+0.5
+x2_min, x2_max = testX[:, 0].min() - 0.5, testX[:, 1].max()+0.5
+
+xx1, xx2 = np.mgrid[x1_min:x1_max:50j, x2_min:x2_max:50j]
+X_pred = np.column_stack([xx1.reshape(-1), xx2.reshape(-1)])
+y_pred = clf.predict(X_pred)
+
+predicts = clf.predict(testX)
+ax_4.scatter(testX[predicts == 0][:, 0], testX[predicts == 0][:, 1], color='blue', label='M')
+ax_4.scatter(testX[predicts == 1][:, 0], testX[predicts == 1][:, 1], color='red', label='F')
 ax_4.set_ylabel('weight')
 ax_4.set_xlabel('height')
 ax_4.set_title('Тестовая выборка')
+ax_4.pcolormesh(xx1, xx2, y_pred.reshape(xx1.shape), cmap=ListedColormap(['blue', 'red']), alpha=0.3, shading='auto')
 ax_4.legend()
-
-# попытка закрасить области
-# fig1, ax_test = plt.subplots()
-# svm = SVC(C=0.5, kernel='linear')
-# svm.fit(trainX, trainY)
-# plot_decision_regions(trainX, trainY, clf=svm, legend=2, filler_feature_values={0: 'M', 1: 'F'})
 
 plt.show()
