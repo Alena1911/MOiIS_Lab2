@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -9,42 +8,44 @@ pd.set_option('display.expand_frame_repr', False)
 ds_orders = pd.read_csv('orders.csv')
 ds_products = pd.read_csv('products.csv')
 
-data_set = pd.merge(ds_orders, ds_products, how='inner', on='ProductID')
 # 1. Определение числа уникальных продуктов в каждой категории
-print(data_set.groupby(by='CategoryName')['ProductID'].count().to_string(), '\r\n')
+print(ds_products.groupby(by='CategoryName')['ProductID'].count().to_string(), '\r\n')
 # 2. Вывод всех продуктов категории 'Морепродукты'
 print('Продукты категории "Морепродукты":')
-print(data_set[data_set['CategoryName'] == 'Морепродукты']['ProductName']
-      .drop_duplicates().to_string(index=False), '\r\n')
+print(ds_products[ds_products['CategoryName'] == 'Морепродукты']['ProductName'].to_string(index=False), '\r\n')
 
 # 3. График числа заказов за каждый прошедший месяц
-copy_df = data_set.copy()
-copy_df.index = pd.to_datetime(data_set['OrderDate'])
-copy_df.groupby(by=[copy_df.index.month])['Quantity'].count().plot()
+copy_df = ds_orders.copy()
+copy_df['OrderDate'] = pd.to_datetime(ds_orders['OrderDate'])
+copy_df.groupby(by=[copy_df['OrderDate'].dt.year, copy_df['OrderDate'].dt.month])['OrderID'].count().plot()
 plt.title('Число заказов за месяц')
 plt.ylabel('Кол-во заказов')
 plt.xlabel('Месяц')
 plt.show()
+
 # 4.1. Добавление столбца OrderSum
-data_set['OrderSum'] = np.where((data_set['UnitPrice_x'] < data_set['UnitPrice_y']),
-                                data_set['Quantity'] * data_set['QuantityPerUnit'] * data_set['UnitPrice_x']
-                                * (1 - data_set['Discount']),
-                                data_set['Quantity'] * data_set['QuantityPerUnit'] * data_set['UnitPrice_y']
-                                * (1 - data_set['Discount']))
+ds_orders['OrderSum'] = ds_orders['UnitPrice'] * ds_orders['Quantity'] * (1 - ds_orders['Discount'])
 print('Добавлен OrderSum:')
-print(data_set, '\r\n')
+print(ds_orders, '\r\n')
+
 # 4.2. Определение самых дорогих заказов
-data_set.groupby(by='OrderID')
-data_set.sort_values(by='OrderSum', ascending=False, inplace=True)
+ds_orders.groupby(by='OrderID')
+ds_orders.sort_values(by='OrderSum', ascending=False, inplace=True)
 print('Самые дорогие заказы:')
-print(data_set.head(), '\r\n')
+print(ds_orders.head(), '\r\n')
+
 # 5. Определение продуктов с максимальной стоимость за шт.
-print(data_set.groupby(by='ProductName')['UnitCost'].max().head(), '\r\n')
+ds_products.groupby(by='ProductName')
+ds_products.sort_values(by='UnitCost', ascending=False, inplace=True)
+print('Самые дорогие продукты:')
+print(ds_products.head(), '\r\n')
 
 ################ 2-ая задача #######################
 # 1. Средний доход от продаж для категорий продуктов
-print('Самые доход от продаж для категорий продуктов:')
-print(data_set.groupby(by='CategoryName')['OrderSum'].mean(), '\r\n')
+data_set = pd.merge(ds_orders, ds_products, how='inner', on='ProductID')
+data_set['OrderSum'] = data_set['UnitPrice_x'] * data_set['Quantity'] * (1 - data_set['Discount'])
+print('Средний доход от продаж для категорий продуктов:')
+print(data_set.groupby(by='CategoryName')['OrderSum'].mean().sort_values(ascending=False), '\r\n')
 # 2. Добавление столбца Profit
 data_set['Profit'] = data_set['OrderSum'] - data_set['Quantity'] * data_set['QuantityPerUnit'] * data_set['UnitCost']
 print('Добавлен Profit:')
