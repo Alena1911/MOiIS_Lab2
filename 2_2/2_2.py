@@ -24,10 +24,8 @@ print(f'Коэффициент: {linear.score(trainX, trainY)}')
 prd = linear.predict(validateX)
 print(f'Среднюю ошибку предсказания: {mean_squared_error(prd, validateY)}')
 
-k, b = np.polyfit(validateY, prd, 1)
-
 plt.scatter(validateY, prd)
-plt.plot(validateY, k * validateY + b, color='black')
+plt.plot(validateY, validateY, color='black')
 plt.xlabel('Оценка')
 plt.ylabel('Наблюдение')
 plt.show()
